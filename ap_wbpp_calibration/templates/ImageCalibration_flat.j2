@@ -1,0 +1,86 @@
+var P = new ImageCalibration;
+P.targetFrames = [ // enabled, path
+{% for file_path in group.file_paths %}
+   [true, "{{ file_path }}"]{% if not loop.last %},{% endif %}
+{% endfor %}
+];
+P.enableCFA = false;
+P.cfaPattern = ImageCalibration.prototype.Auto;
+P.inputHints = "fits-keywords normalize only-first-image raw cfa use-roworder-keywords signed-is-physical";
+P.outputHints = "properties fits-keywords no-compress-data block-alignment 4096 max-inline-block-size 3072 no-embedded-data no-resolution";
+P.pedestal = 0;
+P.pedestalMode = ImageCalibration.prototype.Keyword;
+P.pedestalKeyword = "";
+P.overscanEnabled = false;
+P.overscanImageX0 = 0;
+P.overscanImageY0 = 0;
+P.overscanImageX1 = 0;
+P.overscanImageY1 = 0;
+P.overscanRegions = [ // enabled, sourceX0, sourceY0, sourceX1, sourceY1, targetX0, targetY0, targetX1, targetY1
+   [false, 0, 0, 0, 0, 0, 0, 0, 0],
+   [false, 0, 0, 0, 0, 0, 0, 0, 0],
+   [false, 0, 0, 0, 0, 0, 0, 0, 0],
+   [false, 0, 0, 0, 0, 0, 0, 0, 0]
+];
+P.masterBiasEnabled = {{ group.master_bias_enabled|lower }};
+P.masterBiasPath = "{{ group.master_bias_path }}";
+P.masterDarkEnabled = {{ group.master_dark_enabled|lower }};
+P.masterDarkPath = "{{ group.master_dark_path }}";
+P.masterFlatEnabled = false;
+P.masterFlatPath = "";
+P.calibrateBias = {{ group.master_bias_enabled|lower }};
+P.calibrateDark = {{ group.master_dark_enabled|lower }};
+P.calibrateFlat = false;
+P.optimizeDarks = true;
+P.darkOptimizationThreshold = 0.00000;
+P.darkOptimizationLow = 3.0000;
+P.darkOptimizationWindow = 0;
+P.darkCFADetectionMode = ImageCalibration.prototype.DetectCFA;
+P.separateCFAFlatScalingFactors = false;
+P.flatScaleClippingFactor = 0.05;
+P.cosmeticCorrectionLow = false;
+P.cosmeticLowSigma = 5;
+P.cosmeticCorrectionHigh = false;
+P.cosmeticHighSigma = 10;
+P.cosmeticKernelRadius = 1;
+P.cosmeticShowMap = false;
+P.cosmeticShowMapAndStop = false;
+P.evaluateNoise = false;
+P.noiseEvaluationAlgorithm = ImageCalibration.prototype.NoiseEvaluation_MRS;
+P.evaluateSignal = false;
+P.structureLayers = 5;
+P.saturationThreshold = 1.00;
+P.saturationRelative = false;
+P.noiseLayers = 1;
+P.hotPixelFilterRadius = 1;
+P.noiseReductionFilterRadius = 0;
+P.minStructureSize = 0;
+P.psfType = ImageCalibration.prototype.PSFType_Moffat4;
+P.psfGrowth = 1.00;
+P.maxStars = 24576;
+P.outputDirectory = "{{ group.calibrated_dir }}";
+P.outputExtension = ".xisf";
+P.outputPrefix = "";
+P.outputPostfix = "_c";
+P.outputSampleFormat = ImageCalibration.prototype.f32;
+P.outputPedestal = 0;
+P.outputPedestalMode = ImageCalibration.prototype.OutputPedestal_Literal;
+P.autoPedestalLimit = 0.00010;
+P.generateHistoryProperties = true;
+P.generateFITSKeywords = true;
+P.overwriteExistingFiles = false;
+P.onError = ImageCalibration.prototype.Continue;
+P.noGUIMessages = true;
+P.useFileThreads = true;
+P.fileThreadOverload = 1.00;
+P.maxFileReadThreads = 0;
+P.maxFileWriteThreads = 0;
+
+console.show();
+console.writeln("Calibrating flat frames for: {{ group.master_name }}");
+console.flush();
+
+P.executeGlobal();
+
+console.writeln("Calibration complete. Calibrated files in: {{ group.calibrated_dir }}");
+console.flush();

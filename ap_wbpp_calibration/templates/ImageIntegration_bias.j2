@@ -1,0 +1,99 @@
+var P = new ImageIntegration;
+P.images = [ // enabled, path, drizzlePath, localNormalizationDataPath
+{% for file_path in group.file_paths %}
+   [true, "{{ file_path }}", "", ""]{% if not loop.last %},{% endif %}
+{% endfor %}
+];
+P.inputHints = "fits-keywords normalize only-first-image raw cfa use-roworder-keywords signed-is-physical";
+P.overrideImageType = true;
+P.imageType = 1;
+P.combination = ImageIntegration.prototype.Average;
+P.weightMode = ImageIntegration.prototype.DontCare;
+P.weightKeyword = "";
+P.csvWeightsFilePath = "";
+P.weightScale = ImageIntegration.prototype.WeightScale_BWMV;
+P.minWeight = 0.005000;
+P.csvWeights = "";
+P.adaptiveGridSize = 16;
+P.adaptiveNoScale = false;
+P.ignoreNoiseKeywords = false;
+P.normalization = ImageIntegration.prototype.NoNormalization;
+P.rejection = ImageIntegration.prototype.WinsorizedSigmaClip;
+P.rejectionNormalization = ImageIntegration.prototype.NoRejectionNormalization;
+P.minMaxLow = 1;
+P.minMaxHigh = 1;
+P.pcClipLow = 0.200;
+P.pcClipHigh = 0.100;
+P.sigmaLow = 4.000;
+P.sigmaHigh = 3.000;
+P.winsorizationCutoff = 5.000;
+P.linearFitLow = 5.000;
+P.linearFitHigh = 3.500;
+P.esdOutliersFraction = 0.30;
+P.esdAlpha = 0.05;
+P.esdLowRelaxation = 1.00;
+P.rcrLimit = 0.10;
+P.ccdGain = 1.00;
+P.ccdReadNoise = 10.00;
+P.ccdScaleNoise = 0.00;
+P.clipLow = true;
+P.clipHigh = true;
+P.rangeClipLow = false;
+P.rangeLow = 0.000000;
+P.rangeClipHigh = false;
+P.rangeHigh = 0.980000;
+P.mapRangeRejection = true;
+P.reportRangeRejection = false;
+P.largeScaleClipLow = false;
+P.largeScaleClipLowProtectedLayers = 2;
+P.largeScaleClipLowGrowth = 2;
+P.largeScaleClipHigh = false;
+P.largeScaleClipHighProtectedLayers = 2;
+P.largeScaleClipHighGrowth = 2;
+P.generate64BitResult = false;
+P.generateRejectionMaps = false;
+P.generateSlopeMaps = false;
+P.generateIntegratedImage = true;
+P.generateDrizzleData = false;
+P.closePreviousImages = false;
+P.bufferSizeMB = 16;
+P.stackSizeMB = 1024;
+P.autoMemorySize = true;
+P.autoMemoryLimit = 0.75;
+P.useROI = false;
+P.roiX0 = 0;
+P.roiY0 = 0;
+P.roiX1 = 0;
+P.roiY1 = 0;
+P.useCache = false;
+P.evaluateSNR = false;
+P.noiseEvaluationAlgorithm = ImageIntegration.prototype.NoiseEvaluation_MRS;
+P.mrsMinDataFraction = 0.010;
+P.psfStructureLayers = 5;
+P.psfType = ImageIntegration.prototype.PSFType_Moffat4;
+P.generateFITSKeywords = true;
+P.subtractPedestals = false;
+P.truncateOnOutOfRange = true;
+P.noGUIMessages = true;
+P.showImages = true;
+P.useFileThreads = true;
+P.fileThreadOverload = 1.00;
+P.useBufferThreads = true;
+P.maxBufferThreads = 0;
+
+console.show();
+console.writeln("Generating bias master: {{ group.master_name }}");
+console.flush();
+
+P.executeGlobal();
+
+// Save the integrated image
+var integratedWindow = ImageWindow.windowById(P.integrationImageId);
+if (integratedWindow && !integratedWindow.isNull) {
+    integratedWindow.saveAs("{{ group.output_path }}");
+    console.writeln("Saved master to: {{ group.output_path }}");
+} else {
+    console.writeln("ERROR: Could not find integrated image");
+}
+
+console.flush();

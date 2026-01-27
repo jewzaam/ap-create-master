@@ -1,0 +1,162 @@
+var P = new ImageIntegration;
+P.images = [ // enabled, path, drizzlePath, localNormalizationDataPath
+   [true, "C:/tmp/2026-01-16_07-01-45_HFR__RMSAC_0.00_TEMP_-10.00.fits", "", ""],
+   [true, "C:/tmp/2026-01-16_07-01-48_HFR__RMSAC_0.00_TEMP_-9.90.fits", "", ""],
+   [true, "C:/tmp/2026-01-16_07-01-51_HFR__RMSAC_0.00_TEMP_-9.90.fits", "", ""],
+   [true, "C:/tmp/2026-01-16_07-01-54_HFR__RMSAC_0.00_TEMP_-9.90.fits", "", ""],
+   [true, "C:/tmp/2026-01-16_07-01-57_HFR__RMSAC_0.00_TEMP_-10.00.fits", "", ""],
+   [true, "C:/tmp/2026-01-16_07-02-01_HFR__RMSAC_0.00_TEMP_-10.00.fits", "", ""],
+   [true, "C:/tmp/2026-01-16_07-02-04_HFR__RMSAC_0.00_TEMP_-10.00.fits", "", ""],
+   [true, "C:/tmp/2026-01-16_07-02-07_HFR__RMSAC_0.00_TEMP_-9.90.fits", "", ""],
+   [true, "C:/tmp/2026-01-16_07-02-10_HFR__RMSAC_0.00_TEMP_-9.90.fits", "", ""],
+   [true, "C:/tmp/2026-01-16_07-02-13_HFR__RMSAC_0.00_TEMP_-10.00.fits", "", ""]
+];
+P.inputHints = "fits-keywords normalize only-first-image raw cfa use-roworder-keywords signed-is-physical";
+P.overrideImageType = true;
+P.imageType = 1;
+P.combination = ImageIntegration.prototype.Average;
+P.weightMode = ImageIntegration.prototype.DontCare;
+P.weightKeyword = "";
+P.csvWeightsFilePath = "";
+P.weightScale = ImageIntegration.prototype.WeightScale_BWMV;
+P.minWeight = 0.005000;
+P.csvWeights = "";
+P.adaptiveGridSize = 16;
+P.adaptiveNoScale = false;
+P.ignoreNoiseKeywords = false;
+P.normalization = ImageIntegration.prototype.NoNormalization;
+P.rejection = ImageIntegration.prototype.WinsorizedSigmaClip;
+P.rejectionNormalization = ImageIntegration.prototype.NoRejectionNormalization;
+P.minMaxLow = 1;
+P.minMaxHigh = 1;
+P.pcClipLow = 0.200;
+P.pcClipHigh = 0.100;
+P.sigmaLow = 4.000;
+P.sigmaHigh = 3.000;
+P.winsorizationCutoff = 5.000;
+P.linearFitLow = 5.000;
+P.linearFitHigh = 3.500;
+P.esdOutliersFraction = 0.30;
+P.esdAlpha = 0.05;
+P.esdLowRelaxation = 1.00;
+P.rcrLimit = 0.10;
+P.ccdGain = 1.00;
+P.ccdReadNoise = 10.00;
+P.ccdScaleNoise = 0.00;
+P.clipLow = true;
+P.clipHigh = true;
+P.rangeClipLow = false;
+P.rangeLow = 0.000000;
+P.rangeClipHigh = false;
+P.rangeHigh = 0.980000;
+P.mapRangeRejection = true;
+P.reportRangeRejection = false;
+P.largeScaleClipLow = false;
+P.largeScaleClipLowProtectedLayers = 2;
+P.largeScaleClipLowGrowth = 2;
+P.largeScaleClipHigh = false;
+P.largeScaleClipHighProtectedLayers = 2;
+P.largeScaleClipHighGrowth = 2;
+P.generate64BitResult = false;
+P.generateRejectionMaps = false;
+P.generateSlopeMaps = false;
+P.generateIntegratedImage = true;
+P.generateDrizzleData = false;
+P.closePreviousImages = false;
+P.bufferSizeMB = 16;
+P.stackSizeMB = 1024;
+P.autoMemorySize = true;
+P.autoMemoryLimit = 0.75;
+P.useROI = false;
+P.roiX0 = 0;
+P.roiY0 = 0;
+P.roiX1 = 0;
+P.roiY1 = 0;
+P.useCache = false;
+P.evaluateSNR = false;
+P.noiseEvaluationAlgorithm = ImageIntegration.prototype.NoiseEvaluation_MRS;
+P.mrsMinDataFraction = 0.010;
+P.psfStructureLayers = 5;
+P.psfType = ImageIntegration.prototype.PSFType_Moffat4;
+P.generateFITSKeywords = true;
+P.subtractPedestals = false;
+P.truncateOnOutOfRange = true;
+P.noGUIMessages = true;
+P.showImages = true;
+P.useFileThreads = true;
+P.fileThreadOverload = 1.00;
+P.useBufferThreads = true;
+P.maxBufferThreads = 0;
+/*
+ * Read-only properties
+ *
+P.integrationImageId = "";
+P.lowRejectionMapImageId = "";
+P.highRejectionMapImageId = "";
+P.slopeMapImageId = "";
+P.numberOfImages = 0;
+P.numberOfChannels = 0;
+P.numberOfPixels = 0;
+P.totalPixels = 0;
+P.outputRangeLow = 0;
+P.outputRangeHigh = 0;
+P.totalRejectedLowRK = 0;
+P.totalRejectedLowG = 0;
+P.totalRejectedLowB = 0;
+P.totalRejectedHighRK = 0;
+P.totalRejectedHighG = 0;
+P.totalRejectedHighB = 0;
+P.finalNoiseEstimateRK = 0.000e+00;
+P.finalNoiseEstimateG = 0.000e+00;
+P.finalNoiseEstimateB = 0.000e+00;
+P.finalNoiseScaleEstimateLowRK = 0.000000e+00;
+P.finalNoiseScaleEstimateLowG = 0.000000e+00;
+P.finalNoiseScaleEstimateLowB = 0.000000e+00;
+P.finalNoiseScaleEstimateHighRK = 0.000000e+00;
+P.finalNoiseScaleEstimateHighG = 0.000000e+00;
+P.finalNoiseScaleEstimateHighB = 0.000000e+00;
+P.finalNoiseAlgorithmRK = "";
+P.finalNoiseAlgorithmG = "";
+P.finalNoiseAlgorithmB = "";
+P.finalScaleEstimateRK = 0.0000e+00;
+P.finalScaleEstimateG = 0.0000e+00;
+P.finalScaleEstimateB = 0.0000e+00;
+P.finalLocationEstimateRK = 0.0000e+00;
+P.finalLocationEstimateG = 0.0000e+00;
+P.finalLocationEstimateB = 0.0000e+00;
+P.finalPSFTotalFluxEstimateRK = 0.0000e+00;
+P.finalPSFTotalFluxEstimateG = 0.0000e+00;
+P.finalPSFTotalFluxEstimateB = 0.0000e+00;
+P.finalPSFTotalPowerFluxEstimateRK = 0.0000e+00;
+P.finalPSFTotalPowerFluxEstimateG = 0.0000e+00;
+P.finalPSFTotalPowerFluxEstimateB = 0.0000e+00;
+P.finalPSFTotalMeanFluxEstimateRK = 0.0000e+00;
+P.finalPSFTotalMeanFluxEstimateG = 0.0000e+00;
+P.finalPSFTotalMeanFluxEstimateB = 0.0000e+00;
+P.finalPSFTotalMeanPowerFluxEstimateRK = 0.0000e+00;
+P.finalPSFTotalMeanPowerFluxEstimateG = 0.0000e+00;
+P.finalPSFTotalMeanPowerFluxEstimateB = 0.0000e+00;
+P.finalPSFMStarEstimateRK = 0.0000e+00;
+P.finalPSFMStarEstimateG = 0.0000e+00;
+P.finalPSFMStarEstimateB = 0.0000e+00;
+P.finalPSFNStarEstimateRK = 0.0000e+00;
+P.finalPSFNStarEstimateG = 0.0000e+00;
+P.finalPSFNStarEstimateB = 0.0000e+00;
+P.finalPSFCountRK = 0;
+P.finalPSFCountG = 0;
+P.finalPSFCountB = 0;
+P.referenceNoiseReductionRK = 0.0000;
+P.referenceNoiseReductionG = 0.0000;
+P.referenceNoiseReductionB = 0.0000;
+P.medianNoiseReductionRK = 0.0000;
+P.medianNoiseReductionG = 0.0000;
+P.medianNoiseReductionB = 0.0000;
+P.referenceSNRIncrementRK = 0.0000;
+P.referenceSNRIncrementG = 0.0000;
+P.referenceSNRIncrementB = 0.0000;
+P.averageSNRIncrementRK = 0.0000;
+P.averageSNRIncrementG = 0.0000;
+P.averageSNRIncrementB = 0.0000;
+P.imageData = [ // weightRK, weightG, weightB, rejectedLowRK, rejectedLowG, rejectedLowB, rejectedHighRK, rejectedHighG, rejectedHighB
+];
+ */
