@@ -1,5 +1,5 @@
 """
-Integration tests for ap_wbpp_calibration.calibrate_masters module.
+Integration tests for ap_master_calibration.calibrate_masters module.
 
 Tests real-world workflows and scenarios.
 """
@@ -11,17 +11,17 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from ap_wbpp_calibration import config
-from ap_wbpp_calibration.calibrate_masters import generate_masters, main
+from ap_master_calibration import config
+from ap_master_calibration.calibrate_masters import generate_masters, main
 
 
 class TestRealWorldWorkflows:
     """Test real-world usage scenarios."""
 
     @patch("ap_common.get_filtered_metadata")
-    @patch("ap_wbpp_calibration.calibrate_masters.group_files")
-    @patch("ap_wbpp_calibration.calibrate_masters.get_group_metadata")
-    @patch("ap_wbpp_calibration.calibrate_masters.generate_combined_script")
+    @patch("ap_master_calibration.calibrate_masters.group_files")
+    @patch("ap_master_calibration.calibrate_masters.get_group_metadata")
+    @patch("ap_master_calibration.calibrate_masters.generate_combined_script")
     def test_workflow_darks_only(
         self,
         mock_generate_script,
@@ -87,9 +87,9 @@ class TestRealWorldWorkflows:
         assert call_args[0][3] == []  # flat_groups
 
     @patch("ap_common.get_filtered_metadata")
-    @patch("ap_wbpp_calibration.calibrate_masters.group_files")
-    @patch("ap_wbpp_calibration.calibrate_masters.get_group_metadata")
-    @patch("ap_wbpp_calibration.calibrate_masters.generate_combined_script")
+    @patch("ap_master_calibration.calibrate_masters.group_files")
+    @patch("ap_master_calibration.calibrate_masters.get_group_metadata")
+    @patch("ap_master_calibration.calibrate_masters.generate_combined_script")
     def test_workflow_bias_and_darks(
         self,
         mock_generate_script,
@@ -148,10 +148,10 @@ class TestRealWorldWorkflows:
         assert call_args[0][3] == []  # flat_groups
 
     @patch("ap_common.get_filtered_metadata")
-    @patch("ap_wbpp_calibration.calibrate_masters.group_files")
-    @patch("ap_wbpp_calibration.calibrate_masters.get_group_metadata")
-    @patch("ap_wbpp_calibration.calibrate_masters.find_matching_master_for_flat")
-    @patch("ap_wbpp_calibration.calibrate_masters.generate_combined_script")
+    @patch("ap_master_calibration.calibrate_masters.group_files")
+    @patch("ap_master_calibration.calibrate_masters.get_group_metadata")
+    @patch("ap_master_calibration.calibrate_masters.find_matching_master_for_flat")
+    @patch("ap_master_calibration.calibrate_masters.generate_combined_script")
     def test_workflow_all_three_frame_types(
         self,
         mock_generate_script,
@@ -235,9 +235,9 @@ class TestRealWorldWorkflows:
         assert len(call_args[0][3]) == 1  # flat_groups
 
     @patch("ap_common.get_filtered_metadata")
-    @patch("ap_wbpp_calibration.calibrate_masters.group_files")
-    @patch("ap_wbpp_calibration.calibrate_masters.get_group_metadata")
-    @patch("ap_wbpp_calibration.calibrate_masters.generate_combined_script")
+    @patch("ap_master_calibration.calibrate_masters.group_files")
+    @patch("ap_master_calibration.calibrate_masters.get_group_metadata")
+    @patch("ap_master_calibration.calibrate_masters.generate_combined_script")
     def test_workflow_multiple_dark_groups(
         self,
         mock_generate_script,
@@ -295,9 +295,9 @@ class TestRealWorldWorkflows:
         assert len(call_args[0][2]) == 3  # dark_groups with 3 different exposures
 
     @patch("ap_common.get_filtered_metadata")
-    @patch("ap_wbpp_calibration.calibrate_masters.group_files")
-    @patch("ap_wbpp_calibration.calibrate_masters.get_group_metadata")
-    @patch("ap_wbpp_calibration.calibrate_masters.generate_combined_script")
+    @patch("ap_master_calibration.calibrate_masters.group_files")
+    @patch("ap_master_calibration.calibrate_masters.get_group_metadata")
+    @patch("ap_master_calibration.calibrate_masters.generate_combined_script")
     def test_workflow_bias_only(
         self,
         mock_generate_script,
@@ -333,10 +333,10 @@ class TestRealWorldWorkflows:
         assert len(call_args[0][3]) == 0  # no flat_groups
 
     @patch("ap_common.get_filtered_metadata")
-    @patch("ap_wbpp_calibration.calibrate_masters.group_files")
-    @patch("ap_wbpp_calibration.calibrate_masters.get_group_metadata")
-    @patch("ap_wbpp_calibration.calibrate_masters.find_matching_master_for_flat")
-    @patch("ap_wbpp_calibration.calibrate_masters.generate_combined_script")
+    @patch("ap_master_calibration.calibrate_masters.group_files")
+    @patch("ap_master_calibration.calibrate_masters.get_group_metadata")
+    @patch("ap_master_calibration.calibrate_masters.find_matching_master_for_flat")
+    @patch("ap_master_calibration.calibrate_masters.generate_combined_script")
     def test_workflow_flats_only_with_masters(
         self,
         mock_generate_script,
@@ -397,9 +397,9 @@ class TestRealWorldWorkflows:
         assert flat_group[3] == "dark_master.xisf"
 
     @patch("ap_common.get_filtered_metadata")
-    @patch("ap_wbpp_calibration.calibrate_masters.group_files")
-    @patch("ap_wbpp_calibration.calibrate_masters.get_group_metadata")
-    @patch("ap_wbpp_calibration.calibrate_masters.generate_combined_script")
+    @patch("ap_master_calibration.calibrate_masters.group_files")
+    @patch("ap_master_calibration.calibrate_masters.get_group_metadata")
+    @patch("ap_master_calibration.calibrate_masters.generate_combined_script")
     def test_workflow_flats_only_uncalibrated(
         self,
         mock_generate_script,
@@ -452,10 +452,10 @@ class TestRealWorldWorkflows:
         assert flat_group[3] is None  # no dark master
 
     @patch("ap_common.get_filtered_metadata")
-    @patch("ap_wbpp_calibration.calibrate_masters.group_files")
-    @patch("ap_wbpp_calibration.calibrate_masters.get_group_metadata")
-    @patch("ap_wbpp_calibration.calibrate_masters.find_matching_master_for_flat")
-    @patch("ap_wbpp_calibration.calibrate_masters.generate_combined_script")
+    @patch("ap_master_calibration.calibrate_masters.group_files")
+    @patch("ap_master_calibration.calibrate_masters.get_group_metadata")
+    @patch("ap_master_calibration.calibrate_masters.find_matching_master_for_flat")
+    @patch("ap_master_calibration.calibrate_masters.generate_combined_script")
     def test_workflow_bias_and_flats(
         self,
         mock_generate_script,
@@ -531,9 +531,9 @@ class TestOutputStructure:
     """Test output directory structure and file naming."""
 
     @patch("ap_common.get_filtered_metadata")
-    @patch("ap_wbpp_calibration.calibrate_masters.group_files")
-    @patch("ap_wbpp_calibration.calibrate_masters.get_group_metadata")
-    @patch("ap_wbpp_calibration.calibrate_masters.generate_combined_script")
+    @patch("ap_master_calibration.calibrate_masters.group_files")
+    @patch("ap_master_calibration.calibrate_masters.get_group_metadata")
+    @patch("ap_master_calibration.calibrate_masters.generate_combined_script")
     def test_creates_correct_directory_structure(
         self,
         mock_generate_script,
@@ -567,9 +567,9 @@ class TestOutputStructure:
         assert scripts[0].endswith("calibrate_masters.js")
 
     @patch("ap_common.get_filtered_metadata")
-    @patch("ap_wbpp_calibration.calibrate_masters.group_files")
-    @patch("ap_wbpp_calibration.calibrate_masters.get_group_metadata")
-    @patch("ap_wbpp_calibration.calibrate_masters.generate_combined_script")
+    @patch("ap_master_calibration.calibrate_masters.group_files")
+    @patch("ap_master_calibration.calibrate_masters.get_group_metadata")
+    @patch("ap_master_calibration.calibrate_masters.generate_combined_script")
     def test_script_and_log_have_matching_timestamps(
         self,
         mock_generate_script,
@@ -608,14 +608,14 @@ class TestOutputStructure:
 class TestCLI:
     """Test command-line interface."""
 
-    @patch("ap_wbpp_calibration.calibrate_masters.generate_masters")
-    @patch("ap_wbpp_calibration.calibrate_masters.run_pixinsight")
+    @patch("ap_master_calibration.calibrate_masters.generate_masters")
+    @patch("ap_master_calibration.calibrate_masters.run_pixinsight")
     def test_cli_script_only_mode(self, mock_run_pi, mock_generate, capsys):
         """Test --script-only flag skips PixInsight execution."""
         mock_generate.return_value = ["/tmp/script.js"]
 
         test_args = [
-            "ap-wbpp-calibration",
+            "ap-master-calibration",
             "/input",
             "/output",
             "--script-only",
@@ -628,13 +628,13 @@ class TestCLI:
         mock_generate.assert_called_once()
         mock_run_pi.assert_not_called()
 
-    @patch("ap_wbpp_calibration.calibrate_masters.generate_masters")
+    @patch("ap_master_calibration.calibrate_masters.generate_masters")
     def test_cli_requires_pixinsight_binary_for_execution(self, mock_generate, capsys):
         """Test that --pixinsight-binary is required without --script-only."""
         mock_generate.return_value = ["/tmp/script.js"]
 
         test_args = [
-            "ap-wbpp-calibration",
+            "ap-master-calibration",
             "/input",
             "/output",
         ]
@@ -647,8 +647,8 @@ class TestCLI:
         assert "ERROR" in captured.out
         assert "pixinsight-binary" in captured.out.lower()
 
-    @patch("ap_wbpp_calibration.calibrate_masters.generate_masters")
-    @patch("ap_wbpp_calibration.calibrate_masters.run_pixinsight")
+    @patch("ap_master_calibration.calibrate_masters.generate_masters")
+    @patch("ap_master_calibration.calibrate_masters.run_pixinsight")
     @patch("pathlib.Path.exists")
     def test_cli_executes_pixinsight_when_binary_provided(
         self, mock_exists, mock_run_pi, mock_generate, tmp_path
@@ -660,7 +660,7 @@ class TestCLI:
         mock_exists.return_value = True
 
         test_args = [
-            "ap-wbpp-calibration",
+            "ap-master-calibration",
             "/input",
             "/output",
             "--pixinsight-binary",
@@ -674,8 +674,8 @@ class TestCLI:
         mock_generate.assert_called_once()
         mock_run_pi.assert_called_once()
 
-    @patch("ap_wbpp_calibration.calibrate_masters.generate_masters")
-    @patch("ap_wbpp_calibration.calibrate_masters.run_pixinsight")
+    @patch("ap_master_calibration.calibrate_masters.generate_masters")
+    @patch("ap_master_calibration.calibrate_masters.run_pixinsight")
     @patch("pathlib.Path.exists")
     def test_cli_passes_master_directories(
         self, mock_exists, mock_run_pi, mock_generate, tmp_path
@@ -687,7 +687,7 @@ class TestCLI:
         mock_exists.return_value = True
 
         test_args = [
-            "ap-wbpp-calibration",
+            "ap-master-calibration",
             "/input",
             "/output",
             "--bias-master-dir",
@@ -709,13 +709,13 @@ class TestCLI:
         assert call_args[0][2] == "/bias"
         assert call_args[0][3] == "/darks"
 
-    @patch("ap_wbpp_calibration.calibrate_masters.generate_masters")
+    @patch("ap_master_calibration.calibrate_masters.generate_masters")
     def test_cli_handles_no_frames_found(self, mock_generate, capsys):
         """Test CLI handles case where no frames are found."""
         mock_generate.return_value = []
 
         test_args = [
-            "ap-wbpp-calibration",
+            "ap-master-calibration",
             "/input",
             "/output",
             "--script-only",
@@ -728,8 +728,8 @@ class TestCLI:
         captured = capsys.readouterr()
         assert "No calibration frames found" in captured.out
 
-    @patch("ap_wbpp_calibration.calibrate_masters.generate_masters")
-    @patch("ap_wbpp_calibration.calibrate_masters.run_pixinsight")
+    @patch("ap_master_calibration.calibrate_masters.generate_masters")
+    @patch("ap_master_calibration.calibrate_masters.run_pixinsight")
     @patch("pathlib.Path.exists")
     def test_cli_returns_pixinsight_exit_code(
         self, mock_exists, mock_run_pi, mock_generate, tmp_path
@@ -741,7 +741,7 @@ class TestCLI:
         mock_exists.return_value = True
 
         test_args = [
-            "ap-wbpp-calibration",
+            "ap-master-calibration",
             "/input",
             "/output",
             "--pixinsight-binary",
@@ -753,13 +753,13 @@ class TestCLI:
 
         assert exit_code == 1
 
-    @patch("ap_wbpp_calibration.calibrate_masters.generate_masters")
+    @patch("ap_master_calibration.calibrate_masters.generate_masters")
     def test_cli_handles_exception_gracefully(self, mock_generate, capsys):
         """Test that CLI handles exceptions and returns error code."""
         mock_generate.side_effect = RuntimeError("Simulated error")
 
         test_args = [
-            "ap-wbpp-calibration",
+            "ap-master-calibration",
             "/input",
             "/output",
             "--script-only",
@@ -780,7 +780,7 @@ class TestPixInsightExecution:
     @patch("subprocess.run")
     def test_run_pixinsight_success(self, mock_subprocess, tmp_path):
         """Test successful PixInsight execution."""
-        from ap_wbpp_calibration.calibrate_masters import run_pixinsight
+        from ap_master_calibration.calibrate_masters import run_pixinsight
 
         script_path = tmp_path / "logs" / "script.js"
         script_path.parent.mkdir(parents=True, exist_ok=True)
@@ -811,7 +811,7 @@ class TestPixInsightExecution:
     @patch("subprocess.run")
     def test_run_pixinsight_failure(self, mock_subprocess, tmp_path):
         """Test PixInsight execution with non-zero exit code."""
-        from ap_wbpp_calibration.calibrate_masters import run_pixinsight
+        from ap_master_calibration.calibrate_masters import run_pixinsight
 
         script_path = tmp_path / "logs" / "script.js"
         script_path.parent.mkdir(parents=True, exist_ok=True)
@@ -833,7 +833,7 @@ class TestPixInsightExecution:
     @patch("subprocess.run")
     def test_run_pixinsight_without_force_exit(self, mock_subprocess, tmp_path):
         """Test PixInsight execution without force-exit flag."""
-        from ap_wbpp_calibration.calibrate_masters import run_pixinsight
+        from ap_master_calibration.calibrate_masters import run_pixinsight
 
         script_path = tmp_path / "logs" / "script.js"
         script_path.parent.mkdir(parents=True, exist_ok=True)
@@ -859,7 +859,7 @@ class TestPixInsightExecution:
 
     def test_run_pixinsight_binary_not_found(self, tmp_path):
         """Test error when PixInsight binary doesn't exist."""
-        from ap_wbpp_calibration.calibrate_masters import run_pixinsight
+        from ap_master_calibration.calibrate_masters import run_pixinsight
 
         script_path = tmp_path / "logs" / "script.js"
         script_path.parent.mkdir(parents=True, exist_ok=True)
@@ -872,7 +872,7 @@ class TestPixInsightExecution:
 
     def test_run_pixinsight_script_not_found(self, tmp_path):
         """Test error when script file doesn't exist."""
-        from ap_wbpp_calibration.calibrate_masters import run_pixinsight
+        from ap_master_calibration.calibrate_masters import run_pixinsight
 
         script_path = tmp_path / "logs" / "script.js"
 
@@ -886,7 +886,7 @@ class TestPixInsightExecution:
     @patch("subprocess.run")
     def test_run_pixinsight_subprocess_exception(self, mock_subprocess, tmp_path):
         """Test handling of subprocess exceptions."""
-        from ap_wbpp_calibration.calibrate_masters import run_pixinsight
+        from ap_master_calibration.calibrate_masters import run_pixinsight
 
         script_path = tmp_path / "logs" / "script.js"
         script_path.parent.mkdir(parents=True, exist_ok=True)

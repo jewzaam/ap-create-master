@@ -164,6 +164,22 @@ def generate_masters(
     if bias_groups_list or dark_groups_list or flat_groups_list:
         print("\nGenerating combined script...")
 
+        # Create calibrated directories for flat groups (if using masters)
+        if flat_groups_list:
+            for (
+                metadata,
+                file_paths,
+                master_bias_xisf,
+                master_dark_xisf,
+            ) in flat_groups_list:
+                if master_bias_xisf or master_dark_xisf:
+                    # Only create calibrated directory if we're actually calibrating
+                    from .script_generator import generate_master_filename
+
+                    master_name = generate_master_filename(metadata, "flat")
+                    calibrated_dir = output_path / "calibrated" / master_name
+                    calibrated_dir.mkdir(parents=True, exist_ok=True)
+
         # Use timestamp for script filename (will match log timestamp)
         if not timestamp:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -177,6 +193,7 @@ def generate_masters(
             dark_groups_list,
             flat_groups_list,
             str(log_file_path),
+            str(output_path),  # calibrated_base_dir
         )
 
         script_path = script_dir / f"{timestamp}_calibrate_masters.js"

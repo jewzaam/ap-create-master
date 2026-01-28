@@ -85,21 +85,23 @@ def generate_master_filename(metadata: Dict[str, str], frame_type: str) -> str:
 
 
 def generate_combined_script(
-    output_dir: str,
+    master_output_dir: str,
     bias_groups: List[Tuple[Dict[str, str], List[str]]],
     dark_groups: List[Tuple[Dict[str, str], List[str]]],
     flat_groups: List[Tuple[Dict[str, str], List[str], Optional[str], Optional[str]]],
     log_file: str,
+    calibrated_base_dir: Optional[str] = None,
 ) -> str:
     """
     Generate a single combined script that processes all groups sequentially.
 
     Args:
-        output_dir: Output directory for master files
+        master_output_dir: Output directory for master files
         bias_groups: List of (metadata, file_paths) tuples for bias groups
         dark_groups: List of (metadata, file_paths) tuples for dark groups
         flat_groups: List of (metadata, file_paths, master_bias_xisf, master_dark_xisf) tuples for flat groups
         log_file: Path to log file for Console.beginLog()
+        calibrated_base_dir: Base directory for calibrated flat frames (default: same as master_output_dir)
 
     Returns:
         Combined JavaScript code as string
@@ -107,7 +109,8 @@ def generate_combined_script(
     env = _get_template_env()
     template = env.get_template("combined.j2")
 
-    output_path = Path(output_dir)
+    output_path = Path(master_output_dir)
+    calibrated_path = Path(calibrated_base_dir) if calibrated_base_dir else output_path
 
     # Prepare template context for bias groups
     bias_contexts = []
@@ -139,14 +142,26 @@ def generate_combined_script(
     flat_contexts = []
     for metadata, file_paths, master_bias_xisf, master_dark_xisf in flat_groups:
         master_name = generate_master_filename(metadata, "flat")
-        calibrated_dir = output_path / "calibrated" / master_name
+        calibrated_dir = calibrated_path / "calibrated" / master_name
         master_output_path = output_path / f"{master_name}.xisf"
+
+        # Generate expected calibrated file paths
+        # ImageCalibration creates: <input_basename>_c.xisf in calibrated_dir
+        calibrated_file_paths = []
+        if master_bias_xisf or master_dark_xisf:
+            for file_path in file_paths:
+                file_stem = Path(file_path).stem  # filename without extension
+                calibrated_file = calibrated_dir / f"{file_stem}_c.xisf"
+                calibrated_file_paths.append(str(calibrated_file))
 
         flat_contexts.append(
             {
                 "file_paths": [escape_js_string(p) for p in file_paths],
                 "master_name": master_name,
                 "calibrated_dir": escape_js_string(str(calibrated_dir)),
+                "calibrated_file_paths": [
+                    escape_js_string(p) for p in calibrated_file_paths
+                ],
                 "output_path": escape_js_string(str(master_output_path)),
                 "master_bias_path": (
                     escape_js_string(master_bias_xisf) if master_bias_xisf else ""
