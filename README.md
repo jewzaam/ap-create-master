@@ -1,109 +1,104 @@
-# Master Calibration Frame Automation for PixInsight
+# Master Calibration Frame Automation
 
-Fully automated generation of master bias, dark, and flat calibration frames for PixInsight WBPP workflows.
+Automated generation of master bias, dark, and flat calibration frames for PixInsight.
 
-## Overview
+## What It Does
 
-This automation tool:
-- Automatically discovers and groups calibration frames by FITS keywords
-- Generates master bias, dark, and flat frames using PixInsight's ImageIntegration process
-- Calibrates flat frames with bias/dark masters using ImageCalibration with dark optimization
-- Generates timestamped PixInsight JavaScript scripts for full reproducibility
-- Captures execution logs with timestamps for audit trails
+- Discovers and groups calibration frames by FITS keywords
+- Generates master bias, dark, and flat frames using PixInsight ImageIntegration
+- Calibrates flats with bias/dark masters using ImageCalibration with dark optimization
 - Runs completely hands-off from the command line
-- Processes all filters and instrument configurations automatically
-
-## Requirements
-
-- Python 3.9 or later
-- PixInsight installed
-- `ap-common` package for FITS header processing
-- Calibration frames with proper FITS keywords (see Frame Grouping section)
 
 ## Installation
 
-Install using pip:
-
 ```bash
-pip install git+https://github.com/jewzaam/ap-wbpp-calibration.git
+pip install git+https://github.com/jewzaam/ap-master-calibration.git
 ```
 
 Or install in development mode:
 
 ```bash
-git clone https://github.com/jewzaam/ap-wbpp-calibration.git
-cd ap-wbpp-calibration
+git clone https://github.com/jewzaam/ap-master-calibration.git
+cd ap-master-calibration
 pip install -e .
 ```
 
 ## Quick Start
 
-### 1. Organize Your Frames
-
-Place all calibration frames in a directory. The tool will automatically discover and group them by the `IMAGETYP` FITS keyword:
-- `IMAGETYP=bias` - Bias frames
-- `IMAGETYP=dark` - Dark frames
-- `IMAGETYP=flat` - Flat frames
-- `IMAGETYP=light` - Light frames (automatically ignored)
-
-No specific subdirectory structure is required - the tool scans recursively.
-
-### 2. Run the Automation
-
-**Basic usage (generate bias/dark masters):**
+**Generate bias/dark masters:**
 ```bash
-ap-wbpp-calibration \
-    <input_dir> \
-    <output_dir> \
+python -m ap_master_calibration /path/to/calibration /path/to/output \
     --pixinsight-binary "C:\Program Files\PixInsight\bin\PixInsight.exe"
 ```
 
-**Generate flat masters with existing library:**
+**Generate flat masters using existing library:**
 ```bash
-ap-wbpp-calibration \
-    <input_dir> \
-    <output_dir> \
-    --bias-master-dir "D:\Masters\Bias" \
-    --dark-master-dir "D:\Masters\Darks" \
+python -m ap_master_calibration /path/to/flats /path/to/output \
+    --bias-master-dir /path/to/bias/library \
+    --dark-master-dir /path/to/dark/library \
     --pixinsight-binary "C:\Program Files\PixInsight\bin\PixInsight.exe"
 ```
 
-**Generate scripts only (without executing):**
+**Generate scripts without executing:**
 ```bash
-ap-wbpp-calibration <input_dir> <output_dir> --script-only
+python -m ap_master_calibration /path/to/calibration /path/to/output --script-only
 ```
 
-**Example: Build bias library:**
+## Important Limitation
+
+Masters created in a run are **not used** for flat calibration in that same run. To calibrate flats, you must use existing masters from a library or run in stages:
+
 ```bash
-ap-wbpp-calibration \
-    "D:\AstroData\2026-01-27\bias" \
-    "D:\MasterLibrary\bias" \
+# Stage 1: Generate bias/darks
+python -m ap_master_calibration ./bias_and_darks ./masters \
+    --pixinsight-binary "C:\Program Files\PixInsight\bin\PixInsight.exe"
+
+# Stage 2: Generate flats using the masters from stage 1
+python -m ap_master_calibration ./flats ./output \
+    --bias-master-dir ./masters/master \
+    --dark-master-dir ./masters/master \
     --pixinsight-binary "C:\Program Files\PixInsight\bin\PixInsight.exe"
 ```
 
-**Example: Build flats using library (Linux/Mac):**
-```bash
-ap-wbpp-calibration \
-    ~/AstroData/2026-01-27/flats \
-    ~/AstroData/2026-01-27/output \
-    --bias-master-dir ~/MasterLibrary/bias \
-    --dark-master-dir ~/MasterLibrary/darks \
-    --pixinsight-binary /opt/PixInsight/bin/PixInsight
+This design keeps each run focused on a single task and makes master matching explicit and predictable.
+
+## Output Structure
+
+```
+output_dir/
+├── master/          # Master calibration frames (.xisf)
+└── logs/            # Generated scripts and execution logs
 ```
 
-> **Note:** To calibrate flats with bias/dark masters, you need existing masters in a library. Newly created masters in the same run are not used for flat calibration. See [Workflow: Building vs. Using Masters](#workflow-building-vs-using-masters) for detailed multi-stage workflows.
+Masters are named with metadata for traceability:
+- `masterBias_INSTRUME_<camera>_SET-TEMP_<temp>_GAIN_<gain>_OFFSET_<offset>_READOUTM_<mode>.xisf`
+- `masterDark_<above>_EXPOSURE_<seconds>.xisf`
+- `masterFlat_<above>_DATE-OBS_<date>_FILTER_<filter>.xisf`
+
+## Requirements
+
+- Python 3.9+
+- PixInsight installed
+- `ap-common` package (installed automatically)
+
+Frames must have proper FITS keywords:
+- `IMAGETYP`: Frame type (`bias`, `dark`, `flat`)
+- `INSTRUME`: Camera model
+- `SET-TEMP` or `SETTEMP`: Sensor temperature
+- `GAIN`: Gain setting
+- `OFFSET`: Offset setting
+- `READOUTM`: Readout mode
+- `EXPOSURE` or `EXPTIME`: Exposure time (for darks/flats)
+- `DATE-OBS`: Observation date (for flats)
+- `FILTER`: Filter name (for flats)
 
 ## Command Line Options
 
 ```
-ap-wbpp-calibration [-h] [--bias-master-dir BIAS_MASTER_DIR]
-                    [--dark-master-dir DARK_MASTER_DIR]
-                    [--script-dir SCRIPT_DIR]
-                    [--pixinsight-binary PIXINSIGHT_BINARY]
-                    [--instance-id INSTANCE_ID]
-                    [--no-force-exit]
-                    [--script-only]
-                    input_dir output_dir
+python -m ap_master_calibration [-h] [--bias-master-dir DIR] [--dark-master-dir DIR]
+                                [--script-dir DIR] [--pixinsight-binary PATH]
+                                [--instance-id ID] [--no-force-exit] [--script-only]
+                                input_dir output_dir
 
 positional arguments:
   input_dir             Input directory containing calibration frames
@@ -120,215 +115,51 @@ optional arguments:
   --script-only         Generate scripts only, do not execute PixInsight
 ```
 
-## Output Structure
-
-The tool creates an organized directory structure:
-
-```
-output_dir/
-├── master/                          # Master calibration frames
-│   ├── masterBias_<metadata>.xisf
-│   ├── masterDark_<metadata>.xisf
-│   ├── masterFlat_<metadata>.xisf
-│   └── calibrated/                  # Calibrated flat frames (if using bias/dark)
-│       └── <group_name>/
-│           └── *_c.xisf
-└── logs/                            # Scripts and execution logs
-    ├── 20260127_143052_calibrate_masters.js
-    └── 20260127_143052.log
-```
-
-**Timestamped files:** Both the generated script and execution log use the same timestamp (`YYYYMMDD_HHMMSS`) for easy correlation.
+Run `python -m ap_master_calibration --help` for full details.
 
 ## How It Works
 
-### Master Bias
-1. Discovers all bias frames in input directory
-2. Groups by instrument settings (camera, temperature, gain, offset, readout mode)
-3. Integrates each group using ImageIntegration with no normalization
-4. Saves as `masterBias_<metadata>.xisf`
-
-### Master Dark
-1. Discovers all dark frames
-2. Groups by instrument settings and exposure time
-3. Integrates each group using ImageIntegration with no normalization
-4. Saves as `masterDark_<metadata>.xisf`
-
-### Master Flats
-1. Discovers all flat frames
-2. Groups by instrument settings, date, and filter
-3. For each group:
-   - **If bias/dark masters provided**: Calibrates flats using ImageCalibration with dark optimization
-   - Integrates calibrated (or raw) flats using ImageIntegration with multiplicative normalization
-   - Saves as `masterFlat_<metadata>.xisf`
-
-The metadata in filenames includes all grouping keywords to ensure uniqueness and traceability.
-
-## Frame Grouping
+### Frame Grouping
 
 Frames are automatically grouped by FITS keywords to ensure only compatible frames are combined:
 
-**Bias frames** grouped by:
-- `INSTRUME` - Camera model
-- `SET-TEMP` / `SETTEMP` - Set temperature
-- `GAIN` - Gain setting
-- `OFFSET` - Offset setting
-- `READOUTM` - Readout mode
+- **Bias**: Grouped by camera, temperature, gain, offset, readout mode
+- **Dark**: Grouped by all bias criteria plus exposure time
+- **Flat**: Grouped by all bias criteria plus observation date and filter
 
-**Dark frames** grouped by:
-- All bias grouping criteria above, plus:
-- `EXPOSURE` / `EXPTIME` - Exposure time in seconds
+### Master Generation
 
-**Flat frames** grouped by:
-- All bias grouping criteria above, plus:
-- `DATE-OBS` - Observation date
-- `FILTER` - Filter name
+- **Bias/Dark**: Integrated using ImageIntegration with no normalization
+- **Flat**: Optionally calibrated with bias/dark masters using ImageCalibration with dark optimization, then integrated using multiplicative normalization
 
-The tool uses `ap-common` for FITS header normalization, handling various keyword conventions automatically.
-
-See `ap_wbpp_calibration/config.py` for the complete configuration.
-
-## Flat Calibration with Dark Optimization
-
-When `--bias-master-dir` and `--dark-master-dir` are specified, the tool:
-
-1. Finds matching bias and dark masters for each flat group based on instrument settings
-2. Uses ImageCalibration with `optimizeDarks=true` to calibrate each flat frame
-3. Dark optimization rescales the master dark to match each flat's thermal noise
-4. Handles exposure time variations between flats and darks automatically
-
-This is equivalent to WBPP's flat calibration with optimize enabled, but works outside the WBPP workflow.
-
-## Master Library Matching
+### Master Library Matching
 
 When searching for bias/dark masters in library directories:
-
-- Masters are matched **only by instrument settings** (camera, temperature, gain, offset, readout mode)
+- Masters are matched by instrument settings only (camera, temperature, gain, offset, readout mode)
 - Date and filter are ignored (they vary per flat group)
 - Dark masters with lower or equal exposure time are preferred
 - If no lower exposure dark exists, the next higher exposure is used
-- Master filenames can use any convention - the tool reads FITS headers for matching
-
-This allows maintaining a single master library that can be reused across observation sessions.
-
-## Workflow: Building vs. Using Masters
-
-**Important:** Master matching happens at **script generation time**, not at runtime. This means:
-
-- **Newly created masters in the same run are NOT used for flat calibration**
-- You must use existing masters from a library, or run the tool in stages
-- This is **by design** - it keeps the tool predictable and focused on a single task per run
-
-### Typical Workflows
-
-**Building a Complete Master Library (3 separate runs):**
-
-```bash
-# Stage 1: Generate bias masters
-ap-wbpp-calibration ./calibration/bias ./masters/bias \
-    --pixinsight-binary "C:\Program Files\PixInsight\bin\PixInsight.exe"
-
-# Stage 2: Generate dark masters
-ap-wbpp-calibration ./calibration/darks ./masters/darks \
-    --pixinsight-binary "C:\Program Files\PixInsight\bin\PixInsight.exe"
-
-# Stage 3: Generate flat masters using library
-ap-wbpp-calibration ./calibration/flats ./masters/flats \
-    --bias-master-dir ./masters/bias \
-    --dark-master-dir ./masters/darks \
-    --pixinsight-binary "C:\Program Files\PixInsight\bin\PixInsight.exe"
-```
-
-**Using an Existing Master Library (single run):**
-
-```bash
-# Generate flats using existing bias/dark library
-ap-wbpp-calibration ./new_flats ./output \
-    --bias-master-dir ~/MasterLibrary/bias \
-    --dark-master-dir ~/MasterLibrary/darks \
-    --pixinsight-binary "C:\Program Files\PixInsight\bin\PixInsight.exe"
-```
-
-**Generating Uncalibrated Flat Masters (single run):**
-
-```bash
-# Generate flat masters without calibration
-ap-wbpp-calibration ./flats ./output \
-    --pixinsight-binary "C:\Program Files\PixInsight\bin\PixInsight.exe"
-```
-
-### Why This Design?
-
-This approach follows the **single responsibility principle**:
-- Each run has a clear, focused purpose
-- Master matching is explicit and predictable
-- You control exactly what masters are used
-- No hidden dependencies or unexpected behavior
-- Matches typical astrophotography workflows where bias/dark libraries are built once and reused
-
-## Logs and Reproducibility
-
-The tool generates timestamped artifacts for full reproducibility:
-
-- **JavaScript script** (`<timestamp>_calibrate_masters.js`): Complete PixInsight script showing all parameters
-- **Execution log** (`<timestamp>.log`): Full console output from PixInsight execution
-
-Both files use the same timestamp for easy correlation. The script can be manually re-run in PixInsight for debugging or customization.
 
 ## Troubleshooting
 
-### "No frames found"
+**No frames found:**
 - Verify files have `.fit` or `.fits` extensions
-- Check that files have the `IMAGETYP` FITS keyword set correctly (`bias`, `dark`, or `flat`)
+- Check that `IMAGETYP` FITS keyword is set correctly (`bias`, `dark`, or `flat`)
 - Ensure the input directory path is correct
-- Try running with increased verbosity to see discovered files
 
-### "PixInsight not found"
+**PixInsight not found:**
 - Verify the `--pixinsight-binary` path is correct
 - On Windows: `C:\Program Files\PixInsight\bin\PixInsight.exe`
 - On Linux/Mac: `/opt/PixInsight/bin/PixInsight` or `/Applications/PixInsight/bin/PixInsight`
-- Use quotes around paths with spaces
 
-### "No matching master found for flat calibration"
+**No matching master found for flat calibration:**
 - Check that bias/dark masters have matching instrument settings in their FITS headers
 - Masters must match: `INSTRUME`, `SET-TEMP`, `GAIN`, `OFFSET`, `READOUTM`
-- Date and filter differences are OK - they're expected to vary
-- Use `--script-only` to generate the script and check the master paths
+- Date and filter differences are expected
 
-### PixInsight execution fails
+**PixInsight execution fails:**
 - Check the generated script at `<output_dir>/logs/<timestamp>_calibrate_masters.js`
 - Review the execution log at `<output_dir>/logs/<timestamp>.log`
-- Verify PixInsight can execute the script manually: `PixInsight -r=<script_path>`
-- Check that PixInsight supports the `.xisf` format (should be standard)
-
-### "ImageIntegration: Cannot execute instance in the global context"
-- This means no images were added to the integration
-- Check the log for the number of images found
-- Verify input files exist and are readable
-- Ensure files have valid FITS headers
-
-## Project Structure
-
-```
-ap-wbpp-calibration/
-├── ap_wbpp_calibration/
-│   ├── __init__.py
-│   ├── calibrate_masters.py    # Main CLI entry point
-│   ├── config.py                # Grouping configuration
-│   ├── grouping.py              # Frame grouping logic
-│   ├── master_matching.py       # Master library matching
-│   ├── script_generator.py      # JavaScript code generation
-│   └── templates/               # Jinja2 templates for PixInsight scripts
-│       ├── combined.j2
-│       ├── ImageIntegration_bias.j2
-│       ├── ImageIntegration_dark.j2
-│       ├── ImageIntegration_flat.j2
-│       └── ImageCalibration_flat.j2
-├── tests/                       # Unit tests
-├── examples/                    # Example PixInsight scripts from WBPP
-├── README.md
-└── pyproject.toml
-```
 
 ## Development
 
@@ -339,23 +170,14 @@ pytest tests/
 
 Run with coverage:
 ```bash
-pytest tests/ --cov=ap_wbpp_calibration
+pytest tests/ --cov=ap_master_calibration
 ```
 
 Format code:
 ```bash
-black ap_wbpp_calibration/ tests/
-ruff check ap_wbpp_calibration/ tests/
+black ap_master_calibration/ tests/
+ruff check ap_master_calibration/ tests/
 ```
-
-## Notes
-
-- The tool runs PixInsight in automation mode (`--automation-mode`) to prevent interactive dialogs
-- No GUI interaction is required - fully headless execution
-- All console output is captured to timestamped log files
-- PixInsight exits automatically after execution (override with `--no-force-exit`)
-- The tool uses PixInsight's FileFormat API to write `.xisf` files directly, avoiding format selection prompts
-- Generated scripts use WBPP's exact parameter sets for compatibility
 
 ## License
 

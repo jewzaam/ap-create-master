@@ -3,16 +3,16 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ap-wbpp-calibration"
+name = "ap-master-calibration"
 version = "0.1.0"
-description = "Automated calibration master generation for PixInsight"
+description = "Automated master calibration frame generation for PixInsight"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "Apache-2.0"}
 authors = [
     {name = "Naveen Malik"}
 ]
-keywords = ["astrophotography", "fits", "pixinsight", "calibration"]
+keywords = ["astrophotography", "fits", "pixinsight", "calibration", "master-frames"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
@@ -35,7 +35,7 @@ dependencies = [
 ]
 
 [project.scripts]
-ap-wbpp-calibration = "ap_wbpp_calibration.calibrate_masters:main"
+ap-master-calibration = "ap_master_calibration.calibrate_masters:main"
 
 [project.optional-dependencies]
 dev = [
@@ -46,7 +46,7 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = ["ap_wbpp_calibration"]
+packages = ["ap_master_calibration"]
 
 [tool.setuptools.package-data]
 "*" = ["*.txt", "*.md"]

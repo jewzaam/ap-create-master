@@ -2,5 +2,5 @@ include README.md
 include LICENSE
 include Makefile
 include pyproject.toml
-recursive-include ap_wbpp_calibration *.py
-recursive-include ap_wbpp_calibration/templates *.j2
+recursive-include ap_master_calibration *.py
+recursive-include ap_master_calibration/templates *.j2
