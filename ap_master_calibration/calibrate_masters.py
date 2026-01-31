@@ -234,7 +234,8 @@ def run_pixinsight(
 
     # Extract log file path from script directory
     log_file = (
-        script_path_obj.parent / f"{script_path_obj.stem.replace('_calibrate_masters', '')}.log"
+        script_path_obj.parent
+        / f"{script_path_obj.stem.replace('_calibrate_masters', '')}.log"
     )
 
     print("\nExecuting PixInsight...")
