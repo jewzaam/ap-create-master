@@ -86,9 +86,9 @@ def generate_masters(
             files_by_type[frame_type] = []
 
     logger.info("Found files:")
-    logger.info("  Bias: %d", len(files_by_type['bias']))
-    logger.info("  Dark: %d", len(files_by_type['dark']))
-    logger.info("  Flat: %d", len(files_by_type['flat']))
+    logger.info("  Bias: %d", len(files_by_type["bias"]))
+    logger.info("  Dark: %d", len(files_by_type["dark"]))
+    logger.info("  Flat: %d", len(files_by_type["flat"]))
 
     # Collect all groups for combined script
     bias_groups_list = []
@@ -252,7 +252,7 @@ def run_pixinsight(
         cmd.append("--force-exit")
         logger.info("  Force exit: enabled")
 
-    logger.info("Running: %s", ' '.join(cmd))
+    logger.info("Running: %s", " ".join(cmd))
 
     # Execute and wait for completion
     # Console output is logged by PixInsight via Console.beginLog() in the script
@@ -272,7 +272,9 @@ def run_pixinsight(
 
         return result.returncode
     except subprocess.TimeoutExpired:
-        logger.error("PixInsight execution timed out after %d seconds", config.PIXINSIGHT_TIMEOUT)
+        logger.error(
+            "PixInsight execution timed out after %d seconds", config.PIXINSIGHT_TIMEOUT
+        )
         raise
     except OSError as e:
         logger.error("Failed to execute PixInsight: %s", e)
@@ -380,7 +382,9 @@ def main() -> int:
                     logger.error(
                         "--pixinsight-binary is required to execute PixInsight"
                     )
-                    logger.error("Use --script-only to generate scripts without executing")
+                    logger.error(
+                        "Use --script-only to generate scripts without executing"
+                    )
                     return 1
 
                 exit_code = run_pixinsight(
@@ -401,7 +405,7 @@ def main() -> int:
                 logger.info("Script-only mode: PixInsight execution skipped")
                 logger.info(
                     "To execute: %s --automation-mode -n=%d -r=%s --force-exit",
-                    args.pixinsight_binary or '<pixinsight-binary>',
+                    args.pixinsight_binary or "<pixinsight-binary>",
                     args.instance_id,
                     scripts[0],
                 )
