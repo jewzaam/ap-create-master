@@ -79,7 +79,7 @@ class TestRealWorldWorkflows:
 
         mock_generate_script.return_value = "// Generated script"
 
-        scripts = generate_masters(input_dir, output_dir)
+        scripts, _ = generate_masters(input_dir, output_dir)
 
         assert len(scripts) == 1
         # Verify script generation was called with empty bias and flat lists
@@ -142,7 +142,7 @@ class TestRealWorldWorkflows:
 
         mock_generate_script.return_value = "// Generated script"
 
-        scripts = generate_masters(input_dir, output_dir)
+        scripts, _ = generate_masters(input_dir, output_dir)
 
         assert len(scripts) == 1
         # Verify both bias and dark groups were passed
@@ -231,7 +231,7 @@ class TestRealWorldWorkflows:
         mock_find_master.side_effect = ["bias_master.xisf", "dark_master.xisf"]
         mock_generate_script.return_value = "// Generated script"
 
-        scripts = generate_masters(
+        scripts, _ = generate_masters(
             input_dir, output_dir, bias_master_dir, dark_master_dir
         )
 
@@ -297,7 +297,7 @@ class TestRealWorldWorkflows:
 
         mock_generate_script.return_value = "// Generated script"
 
-        scripts = generate_masters(input_dir, output_dir)
+        scripts, _ = generate_masters(input_dir, output_dir)
 
         assert len(scripts) == 1
         # Verify three dark groups were created
@@ -336,7 +336,7 @@ class TestRealWorldWorkflows:
         mock_get_metadata.return_value = {config.NORMALIZED_HEADER_CAMERA: "ATR585M"}
         mock_generate_script.return_value = "// Generated script"
 
-        scripts = generate_masters(input_dir, output_dir)
+        scripts, _ = generate_masters(input_dir, output_dir)
 
         assert len(scripts) == 1
         call_args = mock_generate_script.call_args
@@ -396,7 +396,7 @@ class TestRealWorldWorkflows:
         mock_find_master.side_effect = ["bias_master.xisf", "dark_master.xisf"]
         mock_generate_script.return_value = "// Generated script"
 
-        scripts = generate_masters(
+        scripts, _ = generate_masters(
             input_dir, output_dir, bias_master_dir, dark_master_dir
         )
 
@@ -457,7 +457,7 @@ class TestRealWorldWorkflows:
         }
         mock_generate_script.return_value = "// Generated script"
 
-        scripts = generate_masters(input_dir, output_dir)
+        scripts, _ = generate_masters(input_dir, output_dir)
 
         assert len(scripts) == 1
         call_args = mock_generate_script.call_args
@@ -536,7 +536,7 @@ class TestRealWorldWorkflows:
         mock_find_master.side_effect = ["bias_master.xisf", "dark_master.xisf"]
         mock_generate_script.return_value = "// Generated script"
 
-        scripts = generate_masters(
+        scripts, _ = generate_masters(
             input_dir, output_dir, bias_master_dir, dark_master_dir
         )
 
@@ -576,7 +576,7 @@ class TestOutputStructure:
         mock_get_metadata.return_value = {config.NORMALIZED_HEADER_CAMERA: "ATR585M"}
         mock_generate_script.return_value = "// Generated script"
 
-        scripts = generate_masters(input_dir, output_dir)
+        scripts, _ = generate_masters(input_dir, output_dir)
 
         # Verify directory structure
         output_path = Path(output_dir)
@@ -614,7 +614,9 @@ class TestOutputStructure:
         mock_get_metadata.return_value = {config.NORMALIZED_HEADER_CAMERA: "ATR585M"}
         mock_generate_script.return_value = "// Generated script"
 
-        scripts = generate_masters(input_dir, output_dir, timestamp="20260127_120000")
+        scripts, _ = generate_masters(
+            input_dir, output_dir, timestamp="20260127_120000"
+        )
 
         assert len(scripts) == 1
         script_path = Path(scripts[0])
@@ -636,7 +638,7 @@ class TestCLI:
     @patch("ap_create_master.calibrate_masters.run_pixinsight")
     def test_cli_script_only_mode(self, mock_run_pi, mock_generate, capsys):
         """Test --script-only flag skips PixInsight execution."""
-        mock_generate.return_value = ["/tmp/script.js"]
+        mock_generate.return_value = (["/tmp/script.js"], [])
 
         test_args = [
             "ap-create-master",
@@ -655,7 +657,7 @@ class TestCLI:
     @patch("ap_create_master.calibrate_masters.generate_masters")
     def test_cli_requires_pixinsight_binary_for_execution(self, mock_generate, capsys):
         """Test that --pixinsight-binary is required without --script-only."""
-        mock_generate.return_value = ["/tmp/script.js"]
+        mock_generate.return_value = (["/tmp/script.js"], [])
 
         test_args = [
             "ap-create-master",
@@ -679,7 +681,7 @@ class TestCLI:
     ):
         """Test that PixInsight is executed when binary is provided."""
         script_path = str(tmp_path / "logs" / "20260127_120000_calibrate_masters.js")
-        mock_generate.return_value = [script_path]
+        mock_generate.return_value = ([script_path], [])
         mock_run_pi.return_value = 0
         mock_exists.return_value = True
 
@@ -706,7 +708,7 @@ class TestCLI:
     ):
         """Test that --bias-master-dir and --dark-master-dir are passed through."""
         script_path = str(tmp_path / "logs" / "20260127_120000_calibrate_masters.js")
-        mock_generate.return_value = [script_path]
+        mock_generate.return_value = ([script_path], [])
         mock_run_pi.return_value = 0
         mock_exists.return_value = True
 
@@ -736,7 +738,7 @@ class TestCLI:
     @patch("ap_create_master.calibrate_masters.generate_masters")
     def test_cli_handles_no_frames_found(self, mock_generate, capsys):
         """Test CLI handles case where no frames are found."""
-        mock_generate.return_value = []
+        mock_generate.return_value = ([], [])
 
         test_args = [
             "ap-create-master",
@@ -760,7 +762,7 @@ class TestCLI:
     ):
         """Test that CLI returns PixInsight's exit code on failure."""
         script_path = str(tmp_path / "logs" / "20260127_120000_calibrate_masters.js")
-        mock_generate.return_value = [script_path]
+        mock_generate.return_value = ([script_path], [])
         mock_run_pi.return_value = 1  # PixInsight failed
         mock_exists.return_value = True
 
