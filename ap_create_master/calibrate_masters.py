@@ -10,18 +10,73 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import ap_common
+from ap_common.fits import update_xisf_headers
 from ap_common.logging_config import setup_logging
 from ap_common.progress import progress_iter
 
 from . import config
 from .grouping import group_files, get_group_metadata
 from .master_matching import find_matching_master_for_flat
-from .script_generator import generate_combined_script
+from .script_generator import generate_combined_script, generate_master_filename
 
 logger = logging.getLogger("ap_create_master.calibrate_masters")
+
+
+def write_master_imagetyp_headers(master_files: List[Tuple[str, str]]) -> None:
+    """
+    Write IMAGETYP headers to generated master XISF files.
+
+    PixInsight generates masters with inconsistent IMAGETYP values:
+    - Bias masters: "BIAS" (missing "MASTER" prefix)
+    - Dark masters: "DARK" (missing "MASTER" prefix)
+    - Flat masters: "MASTER FLAT" (has prefix)
+
+    This function adds the "MASTER" prefix to all frame types for consistency.
+
+    Args:
+        master_files: List of (master_file_path, frame_type) tuples
+                     frame_type is "bias", "dark", or "flat"
+    """
+    type_mapping = {
+        "bias": "MASTER BIAS",
+        "dark": "MASTER DARK",
+        "flat": "MASTER FLAT",
+    }
+
+    for master_file, frame_type in master_files:
+        master_path = Path(master_file)
+        if not master_path.exists():
+            logger.warning(
+                f"Master file not found, skipping header update: {master_file}"
+            )
+            continue
+
+        imagetyp_value = type_mapping.get(frame_type)
+        if not imagetyp_value:
+            logger.warning(f"Unknown frame type '{frame_type}' for {master_file}")
+            continue
+
+        try:
+            # Get denormalized header name (should be "IMAGETYP")
+            header_key = ap_common.denormalize_header(config.NORMALIZED_HEADER_TYPE)
+            if not header_key:
+                header_key = "IMAGETYP"  # Fallback
+
+            # Update IMAGETYP header using ap-common
+            update_xisf_headers(
+                str(master_path),
+                {header_key: imagetyp_value},
+                comments={header_key: "Master calibration frame type"},
+                check_existing=False,  # Always write for newly created files
+            )
+
+            logger.debug(f"Updated {master_path.name}: {header_key} = {imagetyp_value}")
+
+        except Exception as e:
+            logger.warning(f"Failed to update IMAGETYP header for {master_file}: {e}")
 
 
 def generate_masters(
@@ -33,7 +88,7 @@ def generate_masters(
     timestamp: Optional[str] = None,
     debug: bool = False,
     dryrun: bool = False,
-) -> List[str]:
+) -> Tuple[List[str], List[Tuple[str, str]]]:
     """
     Generate calibration masters from input directory.
 
@@ -48,7 +103,9 @@ def generate_masters(
         dryrun: Show what would be done without writing scripts
 
     Returns:
-        List of generated script file paths
+        Tuple of (script_paths, master_files):
+        - script_paths: List of generated script file paths
+        - master_files: List of (master_file_path, frame_type) tuples
     """
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -100,6 +157,9 @@ def generate_masters(
     dark_groups_list = []
     flat_groups_list = []
 
+    # Track master files for header updates
+    master_files_list: List[Tuple[str, str]] = []
+
     # Process bias frames
     if files_by_type["bias"]:
         print("\nProcessing bias frames...")
@@ -109,6 +169,12 @@ def generate_masters(
             metadata = get_group_metadata(group_files_list[0]["headers"], "bias")
             file_paths = [f["path"] for f in group_files_list]
             bias_groups_list.append((metadata, file_paths))
+
+            # Track master file for header updates
+            master_name = generate_master_filename(metadata, "bias")
+            master_file_path = str(master_dir / f"{master_name}.xisf")
+            master_files_list.append((master_file_path, "bias"))
+
             print(f"  Group: {len(file_paths)} files")
 
     # Process dark frames
@@ -120,6 +186,12 @@ def generate_masters(
             metadata = get_group_metadata(group_files_list[0]["headers"], "dark")
             file_paths = [f["path"] for f in group_files_list]
             dark_groups_list.append((metadata, file_paths))
+
+            # Track master file for header updates
+            master_name = generate_master_filename(metadata, "dark")
+            master_file_path = str(master_dir / f"{master_name}.xisf")
+            master_files_list.append((master_file_path, "dark"))
+
             print(f"  Group: {len(file_paths)} files")
 
     # Process flat frames
@@ -165,6 +237,12 @@ def generate_masters(
             flat_groups_list.append(
                 (metadata, file_paths, master_bias_xisf, master_dark_xisf)
             )
+
+            # Track master file for header updates
+            master_name = generate_master_filename(metadata, "flat")
+            master_file_path = str(master_dir / f"{master_name}.xisf")
+            master_files_list.append((master_file_path, "flat"))
+
             print(f"  Group: {len(file_paths)} files")
             if master_bias_xisf:
                 print(f"    Using bias master: {Path(master_bias_xisf).name}")
@@ -188,8 +266,6 @@ def generate_masters(
             ) in flat_groups_list:
                 if master_bias_xisf or master_dark_xisf:
                     # Only create calibrated directory if we're actually calibrating
-                    from .script_generator import generate_master_filename
-
                     master_name = generate_master_filename(metadata, "flat")
                     calibrated_dir = output_path / "calibrated" / master_name
                     calibrated_dir.mkdir(parents=True, exist_ok=True)
@@ -208,7 +284,7 @@ def generate_masters(
             print(
                 f"[DRYRUN] Summary: {len(bias_groups_list)} bias, {len(dark_groups_list)} dark, {len(flat_groups_list)} flat groups"
             )
-            return []
+            return ([], master_files_list)
         else:
             combined_script = generate_combined_script(
                 str(master_dir),
@@ -223,9 +299,9 @@ def generate_masters(
             logger.info(
                 f"Generated script: {script_path.name}, console_log: {log_file_path.name}"
             )
-            return [str(script_path)]
+            return ([str(script_path)], master_files_list)
 
-    return []
+    return ([], [])
 
 
 def run_pixinsight(
@@ -374,7 +450,7 @@ def main() -> int:
         # Generate timestamp once to use for both script and log
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        scripts = generate_masters(
+        scripts, master_files = generate_masters(
             args.input_dir,
             args.output_dir,
             args.bias_master_dir,
@@ -414,6 +490,15 @@ def main() -> int:
 
                 if exit_code == 0:
                     print("PixInsight execution completed successfully!")
+
+                    # Write IMAGETYP headers to generated master files
+                    if master_files:
+                        logger.info("Writing IMAGETYP headers to master files...")
+                        write_master_imagetyp_headers(master_files)
+                        logger.info(
+                            f"Updated {len(master_files)} master file(s) with IMAGETYP headers"
+                        )
+
                     print(f"Master files: {args.output_dir}/master")
                     print(f"Logs: {args.output_dir}/logs")
                 else:

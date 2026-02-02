@@ -52,12 +52,9 @@ def find_matching_master_for_flat(
         return None
 
     # Build filters dict: TYPE and all instrument settings
-    # TYPE in master files from PixInsight: "BIAS" for bias, "DARK" for dark, "MASTER FLAT" for flat
-    # (PixInsight inconsistency: BIAS/DARK don't get "MASTER" prefix, but FLAT does)
-    if master_type == "flat":
-        type_value = f"MASTER {master_type.upper()}"
-    else:
-        type_value = master_type.upper()
+    # TYPE format: "MASTER BIAS", "MASTER DARK", "MASTER FLAT"
+    # These are written by ap-create-master after PixInsight generates masters
+    type_value = f"MASTER {master_type.upper()}"
     filters = {
         config.NORMALIZED_HEADER_TYPE: type_value,
     }
