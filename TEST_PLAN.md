@@ -25,7 +25,7 @@ Key testing principles:
 - `test_script_generator.py` - PixInsight script generation
 - `test_master_matching.py` - Master frame matching for flat calibration
 - `test_calibrate_masters.py` - Core business logic
-- `test_config.py` - Configuration constants
+- `test_config.py` - Configuration structure (not constants)
 
 ### Integration Tests
 
@@ -79,8 +79,24 @@ make test
 pytest tests/test_main.py -v
 ```
 
+## Minimum Image Count Validation
+
+PixInsight's ImageIntegration requires at least 3 source images. Groups below this threshold are skipped with a warning rather than failing during processing.
+
+**Constant:** `config.MIN_IMAGES_FOR_INTEGRATION = 3`
+
+**Coverage in `test_calibrate_masters.py`:**
+- `test_warns_and_skips_group_with_insufficient_images` — bias group with 1 image: skipped, warning emitted, no script generated
+- `test_warns_and_skips_dark_group_with_insufficient_images` — dark group with 1 image: same behavior
+- `test_warns_and_skips_flat_group_with_insufficient_images` — flat group with 1 image: same behavior
+- `test_warns_and_skips_group_with_exactly_two_images` — boundary: 2 images is also below threshold
+- `test_skips_insufficient_group_but_keeps_valid_groups` — mixed groups: only the insufficient group is skipped; valid groups proceed
+
+**Not tested:** Configuration constants are not tested per project standards; `MIN_IMAGES_FOR_INTEGRATION` value is not asserted in `test_config.py`.
+
 ## Changelog
 
 | Date | Change | Rationale |
 |------|--------|-----------|
+| 2026-03-08 | Document minimum image count validation and coverage | PR #33 added validation; coverage extended to dark, flat, and boundary cases |
 | 2026-02-14 | Add CLI testing documentation and test suite | Implement CLI Testing Standards across all ap-* modules |

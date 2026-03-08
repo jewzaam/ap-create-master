@@ -751,6 +751,10 @@ def main() -> int:
                         )
                         file_paths = [f["path"] for f in group_files_list]
                         if len(file_paths) < config.MIN_IMAGES_FOR_INTEGRATION:
+                            logger.debug(
+                                f"Skipping bias group with {len(file_paths)} image(s) "
+                                "from progress monitoring (already warned above)"
+                            )
                             continue
                         bias_groups_list.append((metadata, file_paths))
 
@@ -762,6 +766,10 @@ def main() -> int:
                         )
                         file_paths = [f["path"] for f in group_files_list]
                         if len(file_paths) < config.MIN_IMAGES_FOR_INTEGRATION:
+                            logger.debug(
+                                f"Skipping dark group with {len(file_paths)} image(s) "
+                                "from progress monitoring (already warned above)"
+                            )
                             continue
                         dark_groups_list.append((metadata, file_paths))
 
@@ -772,6 +780,10 @@ def main() -> int:
                         metadata = get_group_metadata(first_file["headers"], "flat")
                         file_paths = [f["path"] for f in group_files_list]
                         if len(file_paths) < config.MIN_IMAGES_FOR_INTEGRATION:
+                            logger.debug(
+                                f"Skipping flat group with {len(file_paths)} image(s) "
+                                "from progress monitoring (already warned above)"
+                            )
                             continue
 
                         master_bias_xisf = None
