@@ -539,7 +539,214 @@ class TestGenerateMasters:
 
         # Should log a warning for the skipped group
         assert any(
+            "Skipping bias group" in record.message and record.levelname == "WARNING"
+            for record in caplog.records
+        )
+
+    @patch("ap_common.get_filtered_metadata")
+    @patch("ap_create_master.calibrate_masters.group_files")
+    @patch("ap_create_master.calibrate_masters.get_group_metadata")
+    @patch("ap_create_master.calibrate_masters.generate_combined_script")
+    def test_warns_and_skips_dark_group_with_insufficient_images(
+        self,
+        mock_generate_script,
+        mock_get_metadata,
+        mock_group_files,
+        mock_get_filtered,
+        tmp_path,
+        caplog,
+    ):
+        """Test that dark groups with fewer than 3 images are skipped with a warning."""
+        input_dir = str(tmp_path / "input")
+        output_dir = str(tmp_path / "output")
+        os.makedirs(input_dir, exist_ok=True)
+
+        dark_headers = {
+            config.NORMALIZED_HEADER_TYPE: "dark",
+            config.NORMALIZED_HEADER_CAMERA: "ATR585M",
+            config.NORMALIZED_HEADER_SETTEMP: "-10.00",
+            config.NORMALIZED_HEADER_GAIN: "239",
+            config.NORMALIZED_HEADER_OFFSET: "150",
+            config.NORMALIZED_HEADER_READOUTMODE: "Low Conversion Gain",
+            config.NORMALIZED_HEADER_EXPOSURESECONDS: "300.0",
+        }
+
+        def get_filtered_side_effect(*args, **kwargs):
+            frame_type = kwargs.get("filters", {}).get(
+                config.NORMALIZED_HEADER_TYPE, ""
+            )
+            if frame_type == "DARK":
+                return {"dark1.fits": dark_headers}
+            return {}
+
+        mock_get_filtered.side_effect = get_filtered_side_effect
+
+        mock_group_files.return_value = {
+            ("dark", "ATR585M", "-10.00", "239", "150", "Low Conversion Gain"): [
+                {"path": "dark1.fits", "headers": dark_headers},
+            ]
+        }
+
+        mock_get_metadata.return_value = {
+            config.NORMALIZED_HEADER_CAMERA: "ATR585M",
+            config.NORMALIZED_HEADER_SETTEMP: "-10.00",
+            config.NORMALIZED_HEADER_GAIN: "239",
+            config.NORMALIZED_HEADER_OFFSET: "150",
+            config.NORMALIZED_HEADER_READOUTMODE: "Low Conversion Gain",
+        }
+
+        mock_generate_script.return_value = "// Generated script"
+
+        scripts, _ = generate_masters(input_dir, output_dir)
+
+        assert scripts == []
+        mock_generate_script.assert_not_called()
+        assert any(
+            "Skipping dark group" in record.message
+            and "has 1 image(s)" in record.message
+            and "need at least 3" in record.message
+            and record.levelname == "WARNING"
+            for record in caplog.records
+        )
+
+    @patch("ap_common.get_filtered_metadata")
+    @patch("ap_create_master.calibrate_masters.group_files")
+    @patch("ap_create_master.calibrate_masters.get_group_metadata")
+    @patch("ap_create_master.calibrate_masters.find_matching_master_for_flat")
+    @patch("ap_create_master.calibrate_masters.generate_combined_script")
+    def test_warns_and_skips_flat_group_with_insufficient_images(
+        self,
+        mock_generate_script,
+        mock_find_master,
+        mock_get_metadata,
+        mock_group_files,
+        mock_get_filtered,
+        tmp_path,
+        caplog,
+    ):
+        """Test that flat groups with fewer than 3 images are skipped with a warning."""
+        input_dir = str(tmp_path / "input")
+        output_dir = str(tmp_path / "output")
+        os.makedirs(input_dir, exist_ok=True)
+
+        flat_headers = {
+            config.NORMALIZED_HEADER_TYPE: "flat",
+            config.NORMALIZED_HEADER_CAMERA: "ATR585M",
+            config.NORMALIZED_HEADER_SETTEMP: "-10.00",
+            config.NORMALIZED_HEADER_GAIN: "239",
+            config.NORMALIZED_HEADER_OFFSET: "150",
+            config.NORMALIZED_HEADER_READOUTMODE: "Low Conversion Gain",
+            config.NORMALIZED_HEADER_DATE: "2026-01-15",
+            config.NORMALIZED_HEADER_FILTER: "B",
+            config.NORMALIZED_HEADER_EXPOSURESECONDS: "1.5",
+        }
+
+        def get_filtered_side_effect(*args, **kwargs):
+            frame_type = kwargs.get("filters", {}).get(
+                config.NORMALIZED_HEADER_TYPE, ""
+            )
+            if frame_type == "FLAT":
+                return {"flat1.fits": flat_headers}
+            return {}
+
+        mock_get_filtered.side_effect = get_filtered_side_effect
+
+        mock_group_files.return_value = {
+            (
+                "flat",
+                "ATR585M",
+                "-10.00",
+                "239",
+                "150",
+                "Low Conversion Gain",
+                "2026-01-15",
+                "B",
+            ): [
+                {"path": "flat1.fits", "headers": flat_headers},
+            ]
+        }
+
+        mock_get_metadata.return_value = {
+            config.NORMALIZED_HEADER_CAMERA: "ATR585M",
+            config.NORMALIZED_HEADER_SETTEMP: "-10.00",
+            config.NORMALIZED_HEADER_GAIN: "239",
+            config.NORMALIZED_HEADER_OFFSET: "150",
+            config.NORMALIZED_HEADER_READOUTMODE: "Low Conversion Gain",
+            config.NORMALIZED_HEADER_DATE: "2026-01-15",
+            config.NORMALIZED_HEADER_FILTER: "B",
+        }
+
+        mock_generate_script.return_value = "// Generated script"
+
+        scripts, _ = generate_masters(input_dir, output_dir)
+
+        assert scripts == []
+        mock_generate_script.assert_not_called()
+        assert any(
+            "Skipping flat group" in record.message
+            and "has 1 image(s)" in record.message
+            and "need at least 3" in record.message
+            and record.levelname == "WARNING"
+            for record in caplog.records
+        )
+
+    @patch("ap_common.get_filtered_metadata")
+    @patch("ap_create_master.calibrate_masters.group_files")
+    @patch("ap_create_master.calibrate_masters.get_group_metadata")
+    @patch("ap_create_master.calibrate_masters.generate_combined_script")
+    def test_warns_and_skips_group_with_exactly_two_images(
+        self,
+        mock_generate_script,
+        mock_get_metadata,
+        mock_group_files,
+        mock_get_filtered,
+        tmp_path,
+        caplog,
+    ):
+        """Test that a group of exactly 2 images (boundary) is also skipped."""
+        input_dir = str(tmp_path / "input")
+        output_dir = str(tmp_path / "output")
+        os.makedirs(input_dir, exist_ok=True)
+
+        bias_headers = {
+            config.NORMALIZED_HEADER_TYPE: "bias",
+            config.NORMALIZED_HEADER_CAMERA: "ATR585M",
+            config.NORMALIZED_HEADER_SETTEMP: "-10.00",
+            config.NORMALIZED_HEADER_GAIN: "239",
+            config.NORMALIZED_HEADER_OFFSET: "150",
+            config.NORMALIZED_HEADER_READOUTMODE: "Low Conversion Gain",
+        }
+
+        mock_get_filtered.return_value = {
+            "bias1.fits": bias_headers,
+            "bias2.fits": bias_headers,
+        }
+
+        mock_group_files.return_value = {
+            ("bias", "ATR585M", "-10.00", "239", "150", "Low Conversion Gain"): [
+                {"path": "bias1.fits", "headers": bias_headers},
+                {"path": "bias2.fits", "headers": bias_headers},
+            ]
+        }
+
+        mock_get_metadata.return_value = {
+            config.NORMALIZED_HEADER_CAMERA: "ATR585M",
+            config.NORMALIZED_HEADER_SETTEMP: "-10.00",
+            config.NORMALIZED_HEADER_GAIN: "239",
+            config.NORMALIZED_HEADER_OFFSET: "150",
+            config.NORMALIZED_HEADER_READOUTMODE: "Low Conversion Gain",
+        }
+
+        mock_generate_script.return_value = "// Generated script"
+
+        scripts, _ = generate_masters(input_dir, output_dir)
+
+        assert scripts == []
+        mock_generate_script.assert_not_called()
+        assert any(
             "Skipping bias group" in record.message
+            and "has 2 image(s)" in record.message
+            and "need at least 3" in record.message
             and record.levelname == "WARNING"
             for record in caplog.records
         )
