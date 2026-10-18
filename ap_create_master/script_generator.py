@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import ap_common
+from ap_common.constants import FILE_EXTENSION_XISF
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from . import config
@@ -118,7 +119,7 @@ def generate_combined_script(
     bias_contexts = []
     for metadata, file_paths in bias_groups:
         master_name = generate_master_filename(metadata, "bias")
-        output_file = output_path / f"{master_name}.xisf"
+        output_file = output_path / f"{master_name}{FILE_EXTENSION_XISF}"
         bias_contexts.append(
             {
                 "file_paths": [escape_js_string(p) for p in file_paths],
@@ -131,7 +132,7 @@ def generate_combined_script(
     dark_contexts = []
     for metadata, file_paths in dark_groups:
         master_name = generate_master_filename(metadata, "dark")
-        output_file = output_path / f"{master_name}.xisf"
+        output_file = output_path / f"{master_name}{FILE_EXTENSION_XISF}"
         dark_contexts.append(
             {
                 "file_paths": [escape_js_string(p) for p in file_paths],
@@ -145,7 +146,7 @@ def generate_combined_script(
     for metadata, file_paths, master_bias_xisf, master_dark_xisf in flat_groups:
         master_name = generate_master_filename(metadata, "flat")
         calibrated_dir = calibrated_path / "calibrated" / master_name
-        master_output_path = output_path / f"{master_name}.xisf"
+        master_output_path = output_path / f"{master_name}{FILE_EXTENSION_XISF}"
 
         # Generate expected calibrated file paths
         # ImageCalibration creates: <input_basename>_c.xisf in calibrated_dir
@@ -153,7 +154,7 @@ def generate_combined_script(
         if master_bias_xisf or master_dark_xisf:
             for file_path in file_paths:
                 file_stem = Path(file_path).stem  # filename without extension
-                calibrated_file = calibrated_dir / f"{file_stem}_c.xisf"
+                calibrated_file = calibrated_dir / f"{file_stem}_c{FILE_EXTENSION_XISF}"
                 calibrated_file_paths.append(str(calibrated_file))
 
         flat_contexts.append(

@@ -140,6 +140,8 @@ celerybeat.pid
 .envrc
 .venv
 env/
+mutants/
+.mutmut-cache
 venv/
 ENV/
 env.bak/

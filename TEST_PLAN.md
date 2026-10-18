@@ -73,7 +73,7 @@ linters, type checkers, and unit tests cannot detect.
 
 ```bash
 # Run all tests
-make test
+make test-unit
 
 # Run CLI tests specifically
 pytest tests/test_main.py -v
