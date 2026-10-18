@@ -42,7 +42,9 @@ dev = [
     "pytest-mock>=3.0",
     "black>=23.0",
     "flake8>=6.0",
-    "mypy==1.11.2",
+    "mypy>=1.11",
+    "xenon>=0.9",
+    "mutmut>=2.0,<3.0",
 ]
 
 [tool.setuptools]

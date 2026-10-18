@@ -17,6 +17,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import ap_common
 from ap_common.constants import (
     DEFAULT_FITS_PATTERN,
+    FILE_EXTENSION_XISF,
     HEADER_IMAGETYP,
     TYPE_MASTER_BIAS,
     TYPE_MASTER_DARK,
@@ -77,20 +78,22 @@ def get_expected_output_files(
             calibrated_dir = calibrated_base_dir / "calibrated" / master_name
             for file_path in file_paths:
                 file_stem = Path(file_path).stem
-                calibrated_files.append(calibrated_dir / f"{file_stem}_c.xisf")
+                calibrated_files.append(
+                    calibrated_dir / f"{file_stem}_c{FILE_EXTENSION_XISF}"
+                )
 
     # Phase 2: Master files (bias, dark, flat)
     for metadata, _ in bias_groups:
         master_name = generate_master_filename(metadata, "bias")
-        master_files.append(master_dir / f"{master_name}.xisf")
+        master_files.append(master_dir / f"{master_name}{FILE_EXTENSION_XISF}")
 
     for metadata, _ in dark_groups:
         master_name = generate_master_filename(metadata, "dark")
-        master_files.append(master_dir / f"{master_name}.xisf")
+        master_files.append(master_dir / f"{master_name}{FILE_EXTENSION_XISF}")
 
     for metadata, _, _, _ in flat_groups:
         master_name = generate_master_filename(metadata, "flat")
-        master_files.append(master_dir / f"{master_name}.xisf")
+        master_files.append(master_dir / f"{master_name}{FILE_EXTENSION_XISF}")
 
     return calibrated_files, master_files
 
@@ -332,7 +335,7 @@ def generate_masters(
             bias_groups_list.append((metadata, file_paths))
 
             # Track master file for header updates
-            master_file_path = str(master_dir / f"{master_name}.xisf")
+            master_file_path = str(master_dir / f"{master_name}{FILE_EXTENSION_XISF}")
             master_files_list.append((master_file_path, "bias"))
 
             logger.debug(f"Bias group: {len(file_paths)} files -> {master_name}")
@@ -359,7 +362,7 @@ def generate_masters(
             dark_groups_list.append((metadata, file_paths))
 
             # Track master file for header updates
-            master_file_path = str(master_dir / f"{master_name}.xisf")
+            master_file_path = str(master_dir / f"{master_name}{FILE_EXTENSION_XISF}")
             master_files_list.append((master_file_path, "dark"))
 
             logger.debug(f"Dark group: {len(file_paths)} files -> {master_name}")
@@ -418,7 +421,7 @@ def generate_masters(
             )
 
             # Track master file for header updates
-            master_file_path = str(master_dir / f"{master_name}.xisf")
+            master_file_path = str(master_dir / f"{master_name}{FILE_EXTENSION_XISF}")
             master_files_list.append((master_file_path, "flat"))
 
             # Count calibrated groups
